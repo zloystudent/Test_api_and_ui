@@ -97,8 +97,7 @@ project/
 │
 ├── videos/                   # Directory for test videos
 │   ├── chrome/               # Chrome test videos
-│   ├── firefox/              # Firefox test videos
-│   └── edge/                 # Edge test videos
+│   └──firefox/               # Firefox test videos
 │
 ├── allure-results/           # Test results for Allure
 ├── allure-reports/           # Generated Allure reports
@@ -152,7 +151,7 @@ Run tests using pytest directly:
 pytest
 
 # Run specific test file
-pytest tests/ui/test_customer_management.py --mode local
+pytest tests/ui/test_customer_management.py
 
 #To run API tests:
 pytest -v -m api --app-url=http://your-api-host:port
@@ -170,7 +169,7 @@ Run tests in a containerized environment with Selenium Grid:
 
 ```
 # To run all tests in Docker:
-docker-compose up -d pytest-chrome pytest-firefox pytest-edge pytest-api
+docker-compose up -d pytest-chrome pytest-firefox pytest-api
 
 # Run only Chrome tests
 docker-compose up -d pytest-chrome
@@ -260,4 +259,3 @@ class TestCustomersUI:
 
 - Chrome - fully supported in both local and remote mode
 - Firefox - supported only in remote mode via Selenium Grid
-- Edge - supported only in remote mode via Selenium Grid
