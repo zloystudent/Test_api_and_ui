@@ -1,4 +1,4 @@
-name: SimbirSoft_practic_for_SDET
+name: SimbirSoft_Test_Api_and_UI
 on:
   workflow_dispatch:
     inputs:
