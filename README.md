@@ -1,4 +1,4 @@
-API Service
+# API Service
 This service provides access points for managing entities in a PostgreSQL database. It includes a Docker Compose configuration for setting up the service, database, and migrations.
 
 Getting Started
