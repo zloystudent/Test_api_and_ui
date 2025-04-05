@@ -1,12 +1,15 @@
 version: "3.8"
 name: "pytest-selenium-allure"
 services:
+  services:
   pytest-api:
     build:
       context: .
       dockerfile: Dockerfile
     environment:
-  - BASE_URL=http://172.17.0.1:8080
+      - BASE_URL=http://host.docker.internal:8080
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./:/tests
       - ./allure-results:/tests/allure-results:rw
@@ -18,6 +21,7 @@ services:
         "-c",
         "rm -rf /tests/allure-results/* && mkdir -p /tests/allure-results && sleep 5 && pytest -v -n 3 tests/api/ -m api --app-url=http://host.docker.internal:8080 --alluredir=/tests/allure-results",
       ]
+
 
   # UI Chrome Testing service
   pytest-chrome:
