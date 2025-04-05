@@ -128,23 +128,6 @@ services:
     networks:
       - test-network
 
-  # Edge Node
-  edge:
-    image: selenium/node-edge:4.8.3
-    shm_size: 2gb
-    depends_on:
-      - selenium-hub
-    environment:
-      - SE_EVENT_BUS_HOST=selenium-hub
-      - SE_EVENT_BUS_PUBLISH_PORT=4442
-      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
-      - SE_NODE_MAX_SESSIONS=5
-      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
-    ports:
-      - "7903:7900" # VNC port for viewing tests
-    networks:
-      - test-network
-
   # Video recording for Chrome tests
   video-chrome:
     image: selenium/video:ffmpeg-4.3.1-20221219
@@ -189,8 +172,6 @@ services:
   allure:
     image: frankescobar/allure-docker-service
     user: root
-    depends_on:
-      - combine-results
     environment:
       - CHECK_RESULTS_EVERY_SECONDS=3
       - KEEP_HISTORY=1
