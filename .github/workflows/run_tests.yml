@@ -42,6 +42,7 @@ jobs:
       - name: Run All tests
         if: github.event.inputs.deployment_target == 'All_tests' || github.event_name == 'schedule'
         run: |
+          docker-compose up --build -d
           cd test-framework
           docker compose up prepare-allure-dirs
           docker compose up -d selenium-hub chrome firefox
@@ -52,6 +53,7 @@ jobs:
       - name: Run Tests by add customer
         if: github.event.inputs.deployment_target == 'API tests' && github.event_name != 'schedule'
         run: |
+          docker-compose up --build -d
           cd test-framework
           docker compose up prepare-allure-dirs
           docker compose up pytest-api
