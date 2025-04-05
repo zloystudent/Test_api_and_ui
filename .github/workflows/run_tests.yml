@@ -47,7 +47,6 @@ jobs:
           docker compose up prepare-allure-dirs
           docker compose up -d selenium-hub chrome firefox
           docker compose up pytest-chrome pytest-firefox pytest-api
-          docker compose up combine-results
         continue-on-error: true
         
       - name: Run Tests by add customer
