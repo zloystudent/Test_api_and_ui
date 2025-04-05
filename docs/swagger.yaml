@@ -1,0 +1,223 @@
+definitions:
+  dto.AdditionRequest:
+    description: Дополнительная информация о сущности.
+    properties:
+      additional_info:
+        description: AdditionalInfo дополнительные сведения о сущности.
+        example: Дополнительные сведения
+        type: string
+      additional_number:
+        description: AdditionalNumber дополнительное число для сущности.
+        example: 123
+        type: integer
+    type: object
+  dto.AdditionResponse:
+    description: Дополнительная информация о сущности.
+    properties:
+      additional_info:
+        description: AdditionalInfo дополнительные сведения о сущности.
+        example: Дополнительные сведения
+        type: string
+      additional_number:
+        description: AdditionalNumber дополнительное число для сущности.
+        example: 123
+        type: integer
+      id:
+        description: ID идентификатор дополнительной информации.
+        example: 1
+        type: integer
+    type: object
+  dto.EntityRequest:
+    description: Модель для отправки сущности.
+    properties:
+      addition:
+        allOf:
+        - $ref: '#/definitions/dto.AdditionRequest'
+        description: Addition дополнительная информация о событии.
+      important_numbers:
+        description: ImportantNumbers массив важных чисел для сущности.
+        example:
+        - 42
+        - 87
+        - 15
+        items:
+          type: integer
+        type: array
+      title:
+        description: Title заголовок сущности.
+        example: Заголовок сущности
+        type: string
+      verified:
+        description: Verified статус верификации сущности.
+        example: true
+        type: boolean
+    type: object
+  dto.EntityResponse:
+    properties:
+      addition:
+        allOf:
+        - $ref: '#/definitions/dto.AdditionResponse'
+        description: Addition дополнительная информация о сущности.
+      id:
+        description: ID идентификатор сущности.
+        example: 1
+        type: integer
+      important_numbers:
+        description: ImportantNumbers массив важных чисел для сущности.
+        example:
+        - 42
+        - 87
+        - 15
+        items:
+          type: integer
+        type: array
+      title:
+        description: Title заголовок сущности.
+        example: Заголовок сущности
+        type: string
+      verified:
+        description: Verified статус верификации сущности.
+        example: true
+        type: boolean
+    type: object
+info:
+  contact: {}
+paths:
+  /api/create:
+    post:
+      consumes:
+      - application/json
+      description: Запрос на добавление новой сущности
+      parameters:
+      - description: Сущность
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/dto.EntityRequest'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Номер созданной сущности
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Создание сущности
+      tags:
+      - Entity
+  /api/delete/{id}:
+    delete:
+      description: Запрос на удаление сущности и ее дополнений
+      parameters:
+      - description: ID сущности
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Удаление сущности
+      tags:
+      - Entity
+  /api/get/{id}:
+    get:
+      description: Запрос на получение одной сущности
+      parameters:
+      - description: ID сущности
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.EntityResponse'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Получить сущность
+      tags:
+      - Entity
+  /api/getAll:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Запрос на получение списка сущностей
+      parameters:
+      - description: Заголовок
+        in: query
+        name: title
+        type: string
+      - description: Подтверждено
+        in: query
+        name: verified
+        type: boolean
+      - description: Страница
+        in: query
+        name: page
+        type: integer
+      - description: Элементов на странице
+        in: query
+        name: perPage
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.EntityResponse'
+            type: array
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Список сущностей
+      tags:
+      - Entity
+  /api/patch/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Отправка событий
+      parameters:
+      - description: ID сущности
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Сущность
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/dto.EntityRequest'
+      produces:
+      - text/plain
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Обновление сущности и ее дополнений
+      tags:
+      - Entity
+swagger: "2.0"

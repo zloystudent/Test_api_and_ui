@@ -1,0 +1,255 @@
+version: "3.8"
+name: "pytest-selenium-allure"
+services:
+  pytest-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - BASE_URL=http://host.docker.internal:8080 # This is the key change
+    volumes:
+      - ./:/tests
+      - ./allure-results:/tests/allure-results:rw
+    networks:
+      - test-network
+    command:
+      [
+        "sh",
+        "-c",
+        "rm -rf /tests/allure-results/* && mkdir -p /tests/allure-results && sleep 5 && pytest -v -n 3 tests/api/ -m api --app-url=http://host.docker.internal:8080 --alluredir=/tests/allure-results",
+      ]
+
+  # UI Chrome Testing service
+  pytest-chrome:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - selenium-hub
+      - chrome
+    environment:
+      - SELENIUM_HUB_HOST=selenium-hub
+      - SELENIUM_HUB_PORT=4444
+      - BROWSER=chrome
+      - MODE=remote
+      - HEADLESS=true
+      - BASE_URL=${BASE_URL:-http://localhost:8080}
+    volumes:
+      - ./:/tests
+      - ./allure-results:/tests/allure-results
+    networks:
+      - test-network
+    command:
+      [
+        "sh",
+        "-c",
+        "sleep 5 && pytest -v -m ui -n ${CHROME_INSTANCES:-3} --browser chrome --mode remote  ${TEST_PATH:-tests/ui} --alluredir=/tests/allure-results",
+      ]
+
+  # UI Firefox Testing service
+  pytest-firefox:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - selenium-hub
+      - firefox
+    environment:
+      - SELENIUM_HUB_HOST=selenium-hub
+      - SELENIUM_HUB_PORT=4444
+      - BROWSER=firefox
+      - MODE=remote
+      - HEADLESS=true
+      - BASE_URL=${BASE_URL:-http://localhost:8080}
+    volumes:
+      - ./:/tests
+      - ./allure-results:/tests/allure-results
+    networks:
+      - test-network
+    command:
+      [
+        "sh",
+        "-c",
+        "sleep 5 && pytest -v -m ui -n ${FIREFOX_INSTANCES:-3} --browser firefox --mode remote  ${TEST_PATH:-tests/ui} --alluredir=/tests/allure-results",
+      ]
+
+  # UI Edge Testing service
+  pytest-edge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - selenium-hub
+      - edge
+    environment:
+      - SELENIUM_HUB_HOST=selenium-hub
+      - SELENIUM_HUB_PORT=4444
+      - BROWSER=edge
+      - MODE=remote
+      - HEADLESS=true
+      - BASE_URL=${BASE_URL:-http://localhost:8080}
+    volumes:
+      - ./:/tests
+      - ./allure-result:/tests/allure-results
+    networks:
+      - test-network
+    command:
+      [
+        "sh",
+        "-c",
+        "sleep 5 && pytest -v -m ui -n ${EDGE_INSTANCES:-3} --browser edge --mode remote  ${TEST_PATH:-tests/ui} --alluredir=/tests/allure-results",
+      ]
+
+  # Selenium Grid Hub
+  selenium-hub:
+    image: selenium/hub:4.8.3
+    container_name: selenium-hub
+    ports:
+      - "4442:4442"
+      - "4443:4443"
+      - "4444:4444"
+    networks:
+      - test-network
+    healthcheck:
+      test:
+        ["CMD", "/opt/bin/check-grid.sh", "--host", "0.0.0.0", "--port", "4444"]
+      interval: 15s
+      timeout: 30s
+      retries: 5
+
+  # Chrome Node
+  chrome:
+    image: selenium/node-chrome:4.8.3
+    shm_size: 2gb
+    depends_on:
+      - selenium-hub
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_SESSIONS=5
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+    ports:
+      - "7901:7900" # VNC port for viewing tests
+    networks:
+      - test-network
+
+  # Firefox Node
+  firefox:
+    image: selenium/node-firefox:4.8.3
+    shm_size: 2gb
+    depends_on:
+      - selenium-hub
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_SESSIONS=5
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+    ports:
+      - "7902:7900" # VNC port for viewing tests
+    networks:
+      - test-network
+
+  # Edge Node
+  edge:
+    image: selenium/node-edge:4.8.3
+    shm_size: 2gb
+    depends_on:
+      - selenium-hub
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_SESSIONS=5
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+    ports:
+      - "7903:7900" # VNC port for viewing tests
+    networks:
+      - test-network
+
+  # Video recording for Chrome tests
+  video-chrome:
+    image: selenium/video:ffmpeg-4.3.1-20221219
+    volumes:
+      - ./videos/chrome:/videos
+    depends_on:
+      - chrome
+    environment:
+      - DISPLAY_CONTAINER_NAME=chrome
+      - FILE_NAME=chrome-video
+    networks:
+      - test-network
+
+  # Video recording for Firefox tests
+  video-firefox:
+    image: selenium/video:ffmpeg-4.3.1-20221219
+    volumes:
+      - ./videos/firefox:/videos
+    depends_on:
+      - firefox
+    environment:
+      - DISPLAY_CONTAINER_NAME=firefox
+      - FILE_NAME=firefox-video
+    networks:
+      - test-network
+
+  # Video recording for Edge tests
+  video-edge:
+    image: selenium/video:ffmpeg-4.3.1-20221219
+    volumes:
+      - ./videos/edge:/videos
+    depends_on:
+      - edge
+    environment:
+      - DISPLAY_CONTAINER_NAME=edge
+      - FILE_NAME=edge-video
+    networks:
+      - test-network
+
+  # Prepare all Allure result directories
+  prepare-allure-dirs:
+    image: alpine
+    volumes:
+      - ./allure-results:/allure-results
+      - ./videos:/videos
+    command: >
+      sh -c "mkdir -p /allure-results &&
+             mkdir -p /videos/chrome &&
+             mkdir -p /videos/firefox &&
+             mkdir -p /videos/edge &&
+             chmod -R 777 /allure-results &&
+             chmod -R 777 /videos"
+
+  # Combine all test results for Allure reporting
+  combine-results:
+    image: alpine
+    depends_on:
+      - pytest-chrome
+      - pytest-firefox
+      - pytest-edge
+      - prepare-allure-dirs
+    volumes:
+      - ./allure-results:/allure-results
+    command: >
+      sh -c "cp -rf /allure-results-edge/* /allure-results/"
+
+  # Allure reporting service
+  allure:
+    image: frankescobar/allure-docker-service
+    user: root
+    depends_on:
+      - combine-results
+    environment:
+      - CHECK_RESULTS_EVERY_SECONDS=3
+      - KEEP_HISTORY=1
+    ports:
+      - "5050:5050"
+    volumes:
+      - ./allure-results:/app/allure-results
+      - ./allure-reports:/app/default-reports
+    networks:
+      - test-network
+
+networks:
+  test-network:
