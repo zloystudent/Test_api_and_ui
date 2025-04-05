@@ -1,3 +1,5 @@
+URL Allure Report https://zloystudent.github.io/Test_api_and_ui/
+
 # API Service
 This service provides access points for managing entities in a PostgreSQL database. It includes a Docker Compose configuration for setting up the service, database, and migrations.
 
