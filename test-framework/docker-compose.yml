@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      - BASE_URL=http://host.docker.internal:8080 # This is the key change
+  - BASE_URL=http://172.17.0.1:8080
     volumes:
       - ./:/tests
       - ./allure-results:/tests/allure-results:rw
