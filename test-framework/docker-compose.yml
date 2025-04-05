@@ -73,32 +73,6 @@ services:
         "sleep 5 && pytest -v -m ui -n ${FIREFOX_INSTANCES:-3} --browser firefox --mode remote  ${TEST_PATH:-tests/ui} --alluredir=/tests/allure-results",
       ]
 
-  # UI Edge Testing service
-  pytest-edge:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    depends_on:
-      - selenium-hub
-      - edge
-    environment:
-      - SELENIUM_HUB_HOST=selenium-hub
-      - SELENIUM_HUB_PORT=4444
-      - BROWSER=edge
-      - MODE=remote
-      - HEADLESS=true
-      - BASE_URL=${BASE_URL:-http://localhost:8080}
-    volumes:
-      - ./:/tests
-      - ./allure-result:/tests/allure-results
-    networks:
-      - test-network
-    command:
-      [
-        "sh",
-        "-c",
-        "sleep 5 && pytest -v -m ui -n ${EDGE_INSTANCES:-3} --browser edge --mode remote  ${TEST_PATH:-tests/ui} --alluredir=/tests/allure-results",
-      ]
 
   # Selenium Grid Hub
   selenium-hub:
@@ -194,19 +168,6 @@ services:
     networks:
       - test-network
 
-  # Video recording for Edge tests
-  video-edge:
-    image: selenium/video:ffmpeg-4.3.1-20221219
-    volumes:
-      - ./videos/edge:/videos
-    depends_on:
-      - edge
-    environment:
-      - DISPLAY_CONTAINER_NAME=edge
-      - FILE_NAME=edge-video
-    networks:
-      - test-network
-
   # Prepare all Allure result directories
   prepare-allure-dirs:
     image: alpine
@@ -220,19 +181,6 @@ services:
              mkdir -p /videos/edge &&
              chmod -R 777 /allure-results &&
              chmod -R 777 /videos"
-
-  # Combine all test results for Allure reporting
-  combine-results:
-    image: alpine
-    depends_on:
-      - pytest-chrome
-      - pytest-firefox
-      - pytest-edge
-      - prepare-allure-dirs
-    volumes:
-      - ./allure-results:/allure-results
-    command: >
-      sh -c "cp -rf /allure-results-edge/* /allure-results/"
 
   # Allure reporting service
   allure:
