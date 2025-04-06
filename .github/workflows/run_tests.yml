@@ -55,18 +55,21 @@ jobs:
           docker compose up pytest-chrome pytest-firefox pytest-api
         continue-on-error: true
         
-      - name: Run Tests by add customer
+      - name: API tests
         if: github.event.inputs.deployment_target == 'API tests' && github.event_name != 'schedule'
         run: |
+          cd simbirsoft_sdet_project 
           docker compose up --build -d
+          cd ..
           cd test-framework
           docker compose up prepare-allure-dirs
           docker compose up pytest-api
         continue-on-error: true
         
-      - name: Run Tests by sort customer
+      - name: UI tests
         if: github.event.inputs.deployment_target == 'UI tests' && github.event_name != 'schedule'
         run: |
+          cd test-framework
           docker-compose up prepare-allure-dirs
           docker-compose up -d pytest-chrome
 
