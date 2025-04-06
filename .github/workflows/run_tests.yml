@@ -32,6 +32,10 @@ jobs:
         
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
+
+      - name: Clone service repository to root
+        run: |
+          git clone https://github.com/bondarenkokate73/simbirsoft_sdet_project.git
         
       - name: Create allure results directories
         run: |
@@ -42,7 +46,9 @@ jobs:
       - name: Run All tests
         if: github.event.inputs.deployment_target == 'All_tests' || github.event_name == 'schedule'
         run: |
+          cd simbirsoft_sdet_project 
           docker compose up --build -d
+          cd ..
           cd test-framework
           docker compose up prepare-allure-dirs
           docker compose up -d selenium-hub chrome firefox
