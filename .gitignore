@@ -1,9 +1,0 @@
-cmd/__debug_bin
-.vscode
-
-myenv
-__pycache__
-.pytest_cache
-.gitconfig
-allure-results
-allure-report
